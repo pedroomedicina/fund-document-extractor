@@ -39,3 +39,5 @@ What this makes easy, what it makes hard, and what would make us revisit it.
 | ------------------------------------ | -------------------------------------------------------------- | -------- |
 | [0001](0001-developer-tooling.md)    | Biome, Vitest and TypeScript 7 for developer tooling           | accepted |
 | [0002](0002-corpus-and-rendering.md) | Pin the corpus by manifest and render EDGAR HTML with Chromium | accepted |
+| [0003](0003-pdf-parser.md)           | Extract PDF text page by page with unpdf                       | accepted |
+| [0004](0004-ocr.md)                  | OCR pages without a text layer with tesseract.js               | accepted |

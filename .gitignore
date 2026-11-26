@@ -15,3 +15,6 @@ test-results.json
 corpus/raw/
 corpus/rendered/
 corpus/packets/
+
+# Tesseract language data cache
+.cache/
