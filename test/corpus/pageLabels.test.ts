@@ -4,6 +4,7 @@ import {
   detectPrintedLabel,
   pagesFingerprint,
 } from '../../src/corpus/pageLabels.js';
+import { knownBug } from '../knownBug.js';
 
 const page = (body: string, footer: string) => `${body}\nMore text on the page.\n${footer}`;
 
@@ -54,5 +55,12 @@ describe('pagesFingerprint', () => {
   it('changes when text moves to another page, even if the total text is the same', () => {
     expect(pagesFingerprint(['a b', 'c'])).not.toBe(pagesFingerprint(['a', 'b c']));
     expect(pagesFingerprint(['a', 'b'])).toBe(pagesFingerprint(['a', 'b']));
+  });
+});
+
+describe('known bugs', () => {
+  knownBug('KB-1', 'a table amount on the last line is not a page label', () => {
+    const scheduleWithoutFooter = 'SCHEDULE A\nPartner Commitment\nAlpha Fund LP\n250';
+    expect(detectPrintedLabel(scheduleWithoutFooter)).toBeNull();
   });
 });

@@ -1,5 +1,31 @@
 # RAG Backend Service
 
+> **In progress:** this service is being rebuilt into a fund-document extractor (LPAs to typed, page-cited data). The sections below the Development notes describe the original RAG demo and will be rewritten. Design decisions: [docs/decisions/](docs/decisions/README.md).
+
+## Development
+
+Requires Node 22+ and Docker.
+
+```bash
+npm ci
+docker compose up -d db          # Postgres 17 + pgvector on localhost:5433
+npx playwright install chromium  # for EDGAR rendering and PDF test fixtures
+cp env.example .env              # then fill in LLM_MODEL and keys
+npm run db:migrate
+```
+
+| Command                 | What it does                                                                          |
+| ----------------------- | ------------------------------------------------------------------------------------- |
+| `npm run lint`          | Biome lint and format check                                                           |
+| `npm run typecheck`     | `tsc --noEmit`                                                                        |
+| `npm test`              | Vitest: unit tests plus integration tests against `DATABASE_URL_TEST`                 |
+| `npm run test:ci`       | Same, and fails if any test was skipped                                               |
+| `npm run corpus:fetch`  | Download the public corpus listed in `corpus/sources.json` (needs `EDGAR_USER_AGENT`) |
+| `npm run corpus:render` | Render EDGAR HTML to PDF and check printed page numbers                               |
+| `npm run db:generate`   | Generate a migration after editing `src/db/schema.ts`                                 |
+
+Tests written with `knownBug()` describe the correct behaviour for a defect listed in [docs/known-bugs.md](docs/known-bugs.md). They are expected to fail: when a fix lands, the test passes, the suite fails, and the fix changes `knownBug` to `it` in the same commit.
+
 A Node.js TypeScript backend service for Retrieval-Augmented Generation (RAG) that processes documents, creates embeddings, and provides AI-powered question answering.
 
 ## 🚀 Features
