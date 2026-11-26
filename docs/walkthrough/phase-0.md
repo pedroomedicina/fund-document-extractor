@@ -22,7 +22,7 @@
 
 **What it does.** Removed `chromadb`, `pinecone-client`, `@chroma-core/default-embed` and `ai`, which were installed but never used. Type packages and the compiler moved to `devDependencies`. `ts-node` was replaced by `tsx`. The package is ESM (`"type": "module"`, `module: NodeNext`), which is why local imports end in `.js` even in `.ts` files.
 
-**How it fails.** `pdf-parse`'s `index.js` runs a self-test that crashes under ESM. The legacy upload path imports `pdf-parse/lib/pdf-parse.js` directly to avoid it ([documentProcessor.ts:4](../../src/services/documentProcessor.ts:4)). Phase 1 replaced pdf-parse for the new pipeline (decision 0003).
+**How it fails.** `pdf-parse`'s `index.js` runs a self-test that crashes under ESM. The legacy upload path imported `pdf-parse/lib/pdf-parse.js` directly to avoid it (`src/services/documentProcessor.ts`, since removed). Phase 1 replaced pdf-parse for the new pipeline (decision 0003), and [decision 0006](../decisions/0006-remove-prototype-endpoints.md) removed the legacy path and pdf-parse with it.
 
 **Likely questions**
 
@@ -33,9 +33,9 @@
 
 ## 3. Config that fails fast
 
-**What it does.** [config.ts:35](../../src/config.ts:35) `loadConfig()` reads the environment once at startup and returns a typed `AppConfig`. `LLM_MODEL` is required; numbers and booleans are parsed strictly.
+**What it does.** [config.ts:20](../../src/config.ts:20) `loadConfig()` reads the environment once at startup and returns a typed `AppConfig`. `LLM_MODEL` is required; numbers and booleans are parsed strictly.
 
-**How it works.** `parsePositiveInt` and `parseBool` ([config.ts:17](../../src/config.ts:17), [:26](../../src/config.ts:26)) return the fallback only when the variable is unset or empty, and throw `ConfigError` for anything malformed. `loadConfig` takes `env` as a parameter so tests pass a plain object instead of mutating `process.env`.
+**How it works.** `parsePositiveInt` ([config.ts:10](../../src/config.ts:10)) and `parseBool` (removed with the upload settings in [0006](../decisions/0006-remove-prototype-endpoints.md)) return the fallback only when the variable is unset or empty, and throw `ConfigError` for anything malformed. `loadConfig` takes `env` as a parameter so tests pass a plain object instead of mutating `process.env`.
 
 **Why.** The old code read `process.env` inside the request handler and hard-coded `gpt-3.5-turbo`. A missing or mistyped setting only showed up on the first request, in production. `MAX_FILE_SIZE=10mb` would have silently become `NaN`.
 
@@ -47,25 +47,30 @@
 
 - _"Why not validate lazily?"_ Fail at deploy, not at 2 a.m. on the first request.
 - _"Why does `ALLOW_UPLOADS` exist?"_ The public demo serves a preloaded corpus. Uploads would let anyone spend the OpenAI budget and store arbitrary files.
+  > **Removed:** `ALLOW_UPLOADS`, `MAX_FILE_SIZE` and `UPLOAD_DIR` went away with the upload endpoint ([decision 0006](../decisions/0006-remove-prototype-endpoints.md)). The answer is kept as the reasoning at the time.
 
 ---
 
 ## 4. App factory and error handling
 
-**What it does.** [app.ts:9](../../src/app.ts:9) `createApp(config)` builds the Express app; [server.ts](../../src/server.ts) only loads config and listens. The error handler ([app.ts:30](../../src/app.ts:30)) maps upload errors to 400 and everything else to a generic 500.
+> **Removed since:** the upload route, `/api/qa` and the upload-specific error branches described below were deleted in [decision 0006](../decisions/0006-remove-prototype-endpoints.md). `createApp` now serves `/health` and the generic 500 handler only. The text is kept as a record of Phase 0; links to deleted files are plain text.
+
+**What it does.** [app.ts:7](../../src/app.ts:7) `createApp(config)` builds the Express app; [server.ts](../../src/server.ts) only loads config and listens. The error handler ([app.ts:21](../../src/app.ts:21)) maps upload errors to 400 and everything else to a generic 500.
 
 **How it works.**
 
 - Splitting `createApp` from `listen` lets supertest drive the app in-process without opening a port.
-- The upload dir is created at startup ([app.ts:11](../../src/app.ts:11)), so the first upload doesn't fail on a missing folder.
+- The upload dir is created at startup (a `mkdirSync` in `app.ts`, since removed), so the first upload doesn't fail on a missing folder.
 - The old `/uploads` static route is gone: uploaded files were publicly downloadable by URL.
-- `MulterError` (e.g. `LIMIT_FILE_SIZE`) and `UnsupportedFileTypeError` ([upload.ts:12](../../src/routes/upload.ts:12)) become 400 with a `code`. Unknown errors are logged and return a message that leaks nothing.
-- With uploads disabled, the route returns 403 **before** multer reads the body ([upload.ts:46](../../src/routes/upload.ts:46)), so a disabled deployment never writes the file to disk.
+- `MulterError` (e.g. `LIMIT_FILE_SIZE`) and `UnsupportedFileTypeError` (`src/routes/upload.ts`, since removed) become 400 with a `code`. Unknown errors are logged and return a message that leaks nothing.
+- With uploads disabled, the route returns 403 **before** multer reads the body (`src/routes/upload.ts`, since removed), so a disabled deployment never writes the file to disk.
 - The per-chunk similarity log in the vector store was removed (it logged on every query).
 
 **How it fails / tests.** [app.test.ts](../../test/app.test.ts): health check, no public `/uploads`, 400 for wrong type, oversize and missing file, 403 when disabled.
 
 **What I'd change.** `/api/upload` and `/api/qa` still run the **old** pipeline (pdf-parse, LangChain splitter, in-memory vector store). They're replaced in Phase 1e/2. Be upfront about this if asked to demo upload.
+
+> **What happened instead:** they were removed rather than hardened ([decision 0006](../decisions/0006-remove-prototype-endpoints.md)). `upload.ts` also caught its own errors and returned `error.message`, so the "leaks nothing" handler above never saw them.
 
 **Likely questions**
 
@@ -111,9 +116,9 @@ Also: `strict` + `noUncheckedIndexedAccess`, so `pages[i]` is `Page | undefined`
 
 You're ready when you can answer these without opening the code:
 
-1. What happens at startup if `LLM_MODEL` is missing? If `MAX_FILE_SIZE=10mb`?
+1. What happens at startup if `LLM_MODEL` is missing? If `PORT=-1`? (The original question used `MAX_FILE_SIZE=10mb`, removed in 0006.)
 2. Why is `createApp` separate from `listen`?
-3. A user uploads a 20 MB `.docx` with uploads enabled. Walk through what happens and what they get back.
-4. Same request with `ALLOW_UPLOADS=false`. Why does the order of middleware matter?
+3. _(Historical, endpoint removed in 0006.)_ A user uploads a 20 MB `.docx` with uploads enabled. Walk through what happens and what they get back.
+4. _(Historical, endpoint removed in 0006.)_ Same request with `ALLOW_UPLOADS=false`. Why does the order of middleware matter?
 5. Name the three CI steps that exist to stop CI from passing by accident.
-6. Which parts of the running app are still the old pipeline?
+6. Why were the prototype endpoints removed instead of hardened?

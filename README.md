@@ -55,6 +55,7 @@ _Planned for Phase 3._ This table will hold per-field accuracy, completeness, fa
 | Area                                                      | State                                         |
 | --------------------------------------------------------- | --------------------------------------------- |
 | Repo cleanup, config, error handling, CI                  | Done                                          |
+| Remove prototype upload and Q&A endpoints                 | Done                                          |
 | Source manifest, fetch with hash pinning, EDGAR rendering | Built and tested; real corpus not fetched yet |
 | Page-by-page extraction, OCR fallback, quality gate       | Done                                          |
 | Chunker for LPAs (articles, sections, page ranges)        | Done                                          |
@@ -64,7 +65,7 @@ _Planned for Phase 3._ This table will hold per-field accuracy, completeness, fa
 | Evaluation with a CI gate                                 | Planned                                       |
 | Public deployment                                         | Planned                                       |
 
-`POST /api/upload` and `POST /api/qa` still run the original RAG prototype (in-memory vectors, no page citations). They'll be replaced by the new pipeline.
+The HTTP API is `/health` only for now. The prototype upload and Q&A endpoints were removed rather than hardened ([decision 0006](docs/decisions/0006-remove-prototype-endpoints.md)); extraction endpoints arrive in Phase 2.
 
 Known defects are listed in [docs/known-bugs.md](docs/known-bugs.md).
 
@@ -105,7 +106,7 @@ src/
   chunking/   chunker for legal documents
   db/         Drizzle schema, connection, storing documents
   text/       normalization used to match quotes against page text
-  routes/     HTTP routes (still the original prototype)
+  app.ts      Express app: /health and the error handler
 corpus/       sources.json (downloaded and rendered files are not committed)
 drizzle/      SQL migrations
 docs/         decisions, walkthroughs, specs, known bugs
