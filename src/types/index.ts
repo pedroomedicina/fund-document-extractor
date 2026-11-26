@@ -34,5 +34,3 @@ export interface UploadResponse {
   chunks: number;
   message: string;
 }
-
-export type VectorStoreType = 'CHROMA' | 'PINECONE'; 

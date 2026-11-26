@@ -1,5 +1,31 @@
 # RAG Backend Service
 
+> **In progress:** this service is being rebuilt into a fund-document extractor (LPAs to typed, page-cited data). The sections below the Development notes describe the original RAG demo and will be rewritten. Design decisions: [docs/decisions/](docs/decisions/README.md).
+
+## Development
+
+Requires Node 22+ and Docker.
+
+```bash
+npm ci
+docker compose up -d db          # Postgres 17 + pgvector on localhost:5433
+npx playwright install chromium  # for EDGAR rendering and PDF test fixtures
+cp env.example .env              # then fill in LLM_MODEL and keys
+npm run db:migrate
+```
+
+| Command                 | What it does                                                                          |
+| ----------------------- | ------------------------------------------------------------------------------------- |
+| `npm run lint`          | Biome lint and format check                                                           |
+| `npm run typecheck`     | `tsc --noEmit`                                                                        |
+| `npm test`              | Vitest: unit tests plus integration tests against `DATABASE_URL_TEST`                 |
+| `npm run test:ci`       | Same, and fails if any test was skipped                                               |
+| `npm run corpus:fetch`  | Download the public corpus listed in `corpus/sources.json` (needs `EDGAR_USER_AGENT`) |
+| `npm run corpus:render` | Render EDGAR HTML to PDF and check printed page numbers                               |
+| `npm run db:generate`   | Generate a migration after editing `src/db/schema.ts`                                 |
+
+Tests written with `knownBug()` describe the correct behaviour for a defect listed in [docs/known-bugs.md](docs/known-bugs.md). They are expected to fail: when a fix lands, the test passes, the suite fails, and the fix changes `knownBug` to `it` in the same commit.
+
 A Node.js TypeScript backend service for Retrieval-Augmented Generation (RAG) that processes documents, creates embeddings, and provides AI-powered question answering.
 
 ## 🚀 Features
@@ -37,20 +63,22 @@ rag-backend-service/
 ### **Core Server Files**
 
 #### `src/server.ts` - Main Express Server
+
 - **Purpose**: Central web server with middleware configuration
-- **Features**: 
+- **Features**:
   - CORS enabled for cross-origin requests
-  - File serving for uploaded documents
+  - Uploaded files stay private (not served back)
   - Global error handling
   - Health check endpoint
   - Lazy service initialization for proper environment loading
-- **Endpoints**: 
+- **Endpoints**:
   - `GET /health` - Server health check
   - `POST /api/upload` - Document upload (expects 'document' field)
   - `POST /api/qa` - Question answering
 - **Status**: ✅ Complete and working
 
 #### `src/types/index.ts` - TypeScript Definitions
+
 - **Purpose**: Type safety and interface definitions
 - **Defines**:
   - `DocumentMetadata` - File information and metadata
@@ -62,6 +90,7 @@ rag-backend-service/
 ### **API Routes**
 
 #### `src/routes/upload.ts` - Document Upload Handler
+
 - **Purpose**: Handle file uploads and document processing
 - **Features**:
   - Multer configuration for file handling
@@ -80,11 +109,12 @@ rag-backend-service/
 - **Status**: ✅ Complete and working
 
 #### `src/routes/qa.ts` - Question Answering Handler
+
 - **Purpose**: Process user questions and return AI-generated answers
 - **Features**:
   - Input validation for query strings
   - Vector similarity search using cosine similarity
-  - OpenAI GPT-3.5-turbo for answer generation
+  - OpenAI chat model set by `LLM_MODEL` for answer generation
   - Context-aware responses with source attribution
   - Comprehensive error handling and debugging
 - **Process Flow**:
@@ -98,6 +128,7 @@ rag-backend-service/
 ### **Services**
 
 #### `src/services/documentProcessor.ts` - Document Processing Service
+
 - **Purpose**: Extract and chunk text from uploaded documents
 - **Features**:
   - PDF text extraction using `pdf-parse`
@@ -110,6 +141,7 @@ rag-backend-service/
 - **Status**: ✅ Complete and working
 
 #### `src/services/vectorStore.ts` - In-Memory Vector Store Service
+
 - **Purpose**: Store document chunks with embeddings and provide similarity search
 - **Features**:
   - Singleton pattern for data persistence across requests
@@ -127,6 +159,7 @@ rag-backend-service/
 ### **Configuration Files**
 
 #### `env.example` - Environment Configuration Template
+
 - **Purpose**: Template for required environment variables
 - **Required Variables**:
   - **OpenAI**: API key for embeddings and completions
@@ -135,6 +168,7 @@ rag-backend-service/
 - **Status**: ✅ Complete
 
 #### `tsconfig.json` - TypeScript Configuration
+
 - **Purpose**: TypeScript compiler settings
 - **Features**:
   - ES2020 target for modern JavaScript
@@ -145,9 +179,10 @@ rag-backend-service/
 - **Status**: ✅ Complete
 
 #### `package.json` - Project Dependencies
+
 - **Scripts**:
   - `npm run build` - Compile TypeScript to JavaScript
-  - `npm run dev` - Run development server with ts-node
+  - `npm run dev` - Run development server with tsx (watch mode)
   - `npm start` - Run compiled production server
 - **Key Dependencies**:
   - **Express**: Web framework
@@ -160,8 +195,9 @@ rag-backend-service/
 ## 🚦 Current Implementation Status
 
 ### ✅ **Fully Working Components**
+
 - ✅ File upload system (PDF/TXT support)
-- ✅ Text extraction from documents  
+- ✅ Text extraction from documents
 - ✅ Intelligent text chunking with overlap
 - ✅ **OpenAI embedding generation**
 - ✅ **In-memory vector storage with singleton pattern**
@@ -175,6 +211,7 @@ rag-backend-service/
 - ✅ Document metadata storage and management
 
 ### 🚧 **Future Enhancements**
+
 - Persistent vector storage (PostgreSQL with pgvector, Pinecone, etc.)
 - Response streaming implementation
 - Multiple vector store backends
@@ -201,7 +238,7 @@ rag-backend-service/
    ↓
 7. Retrieve Relevant Chunks with Scores ✅
    ↓
-8. Generate AI Answer (GPT-3.5-turbo + Context) ✅
+8. Generate AI Answer (`LLM_MODEL` + Context) ✅
    ↓
 9. Return Response with Sources to Client ✅
 ```
@@ -209,12 +246,14 @@ rag-backend-service/
 ## 🚀 Getting Started
 
 ### **Prerequisites**
+
 - Node.js 18+ and npm
 - OpenAI API key
 
 ### **Installation & Setup**
 
 1. **Clone and install dependencies:**
+
    ```bash
    git clone <repository-url>
    cd rag-backend-service
@@ -222,12 +261,14 @@ rag-backend-service/
    ```
 
 2. **Set up environment variables:**
+
    ```bash
    cp env.example .env
    # Edit .env and add your OpenAI API key
    ```
 
 3. **Start the development server:**
+
    ```bash
    npm run dev
    ```
@@ -237,17 +278,20 @@ rag-backend-service/
 ### **Testing the API**
 
 1. **Health check:**
+
    ```bash
    curl http://localhost:3000/health
    ```
 
 2. **Upload a document:**
+
    ```bash
    curl -X POST http://localhost:3000/api/upload \
      -F "document=@your-file.pdf"
    ```
 
 3. **Ask questions about the uploaded document:**
+
    ```bash
    curl -X POST http://localhost:3000/api/qa \
      -H "Content-Type: application/json" \
@@ -257,6 +301,7 @@ rag-backend-service/
 ### **Example API Responses**
 
 **Successful Upload:**
+
 ```json
 {
   "success": true,
@@ -268,6 +313,7 @@ rag-backend-service/
 ```
 
 **Q&A Response:**
+
 ```json
 {
   "answer": "The document discusses artificial intelligence and machine learning concepts...",
@@ -291,17 +337,21 @@ rag-backend-service/
 ## 🧪 Testing Strategy
 
 ### **Manual Testing**
+
 1. **Health Check**: `GET /health` → Should return `{"status": "OK"}`
 2. **Document Upload**: Test with PDF and TXT files
 3. **Q&A Functionality**: Ask various questions about uploaded content
 4. **Error Handling**: Test with invalid files, malformed requests
 
 ### **Test Files**
+
 Create test files to verify functionality:
+
 - `test-sample.txt` - Simple text document with AI/ML content
 - `test-document.pdf` - PDF with readable text content
 
 ### **Expected Behavior**
+
 - Documents are processed and chunked automatically
 - Similar questions should return relevant content from uploaded documents
 - Unrelated questions should indicate no relevant information found
@@ -310,7 +360,7 @@ Create test files to verify functionality:
 ## 📚 Business Use Cases
 
 - **Document Q&A Systems**: Ask questions about uploaded documents
-- **Knowledge Base Search**: Semantic search through document collections  
+- **Knowledge Base Search**: Semantic search through document collections
 - **Content Analysis**: Extract insights from large document sets
 - **Research Assistance**: AI-powered document comprehension
 - **Customer Support**: Automated responses based on documentation
@@ -354,4 +404,4 @@ View logs in the console when running `npm run dev` to monitor system behavior.
 - **Lazy Initialization**: Services are created only when needed to ensure proper environment loading
 - **Type Safety**: Full TypeScript implementation with comprehensive interfaces
 
-For production use, consider migrating to persistent vector storage solutions like PostgreSQL with pgvector extension or cloud-based vector databases. 
+For production use, consider migrating to persistent vector storage solutions like PostgreSQL with pgvector extension or cloud-based vector databases.

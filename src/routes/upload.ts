@@ -1,95 +1,92 @@
+import path from 'node:path';
 import express from 'express';
 import multer from 'multer';
-import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { DocumentProcessor } from '../services/documentProcessor';
-import { VectorStoreService } from '../services/vectorStore';
-import { UploadResponse } from '../types';
+import type { AppConfig } from '../config.js';
+import { DocumentProcessor } from '../services/documentProcessor.js';
+import { VectorStoreService } from '../services/vectorStore.js';
+import type { UploadResponse } from '../types/index.js';
 
-const router = express.Router();
+export const ALLOWED_EXTENSIONS = ['.pdf', '.txt'] as const;
 
-// Initialize services lazily to ensure environment variables are loaded
-let documentProcessor: DocumentProcessor;
-
-function getServices() {
-  if (!documentProcessor) {
-    documentProcessor = new DocumentProcessor();
+export class UnsupportedFileTypeError extends Error {
+  override name = 'UnsupportedFileTypeError';
+  constructor(extension: string) {
+    super(
+      `Unsupported file type "${extension || '(none)'}". Allowed: ${ALLOWED_EXTENSIONS.join(', ')}`,
+    );
   }
-  const vectorStore = VectorStoreService.getInstance();
-  return { documentProcessor, vectorStore };
 }
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
+export function uploadRoutes(config: AppConfig): express.Router {
+  const router = express.Router();
+  let documentProcessor: DocumentProcessor | undefined;
 
-const upload = multer({
-  storage: storage,
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = ['.pdf', '.txt'];
-    const fileExtension = path.extname(file.originalname).toLowerCase();
-    
-    if (allowedTypes.includes(fileExtension)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only PDF and TXT files are allowed'));
-    }
-  },
-  limits: {
-    fileSize: parseInt(process.env.MAX_FILE_SIZE || '10485760') // 10MB default
-  }
-});
+  const upload = multer({
+    storage: multer.diskStorage({
+      destination: config.uploadDir,
+      filename: (_req, file, cb) => {
+        const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+        cb(null, `${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`);
+      },
+    }),
+    fileFilter: (_req, file, cb) => {
+      const extension = path.extname(file.originalname).toLowerCase();
+      if ((ALLOWED_EXTENSIONS as readonly string[]).includes(extension)) {
+        cb(null, true);
+      } else {
+        cb(new UnsupportedFileTypeError(extension));
+      }
+    },
+    limits: { fileSize: config.maxFileSize },
+  });
 
-// POST /api/upload - Upload and process document
-router.post('/', upload.single('document'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'No file uploaded' 
-      });
-    }
+  router.post(
+    '/',
+    (_req, res, next) => {
+      if (!config.allowUploads) {
+        res
+          .status(403)
+          .json({ success: false, message: 'Uploads are disabled on this deployment' });
+        return;
+      }
+      next();
+    },
+    upload.single('document'),
+    async (req, res) => {
+      try {
+        if (!req.file) {
+          res.status(400).json({ success: false, message: 'No file uploaded' });
+          return;
+        }
 
-    const documentId = uuidv4();
-    const filePath = req.file.path;
-    const filename = req.file.originalname;
+        const documentId = uuidv4();
+        const filename = req.file.originalname;
+        documentProcessor ??= new DocumentProcessor();
+        const { chunks } = await documentProcessor.processDocument(req.file.path, filename);
 
-    // Get initialized services
-    const { documentProcessor, vectorStore } = getServices();
+        await VectorStoreService.getInstance().addDocumentChunks(documentId, chunks, {
+          filename: req.file.filename,
+          originalName: filename,
+        });
 
-    // Process the document
-    const { content, chunks } = await documentProcessor.processDocument(filePath, filename);
+        const response: UploadResponse = {
+          success: true,
+          documentId,
+          filename,
+          chunks: chunks.length,
+          message: `Document processed successfully. Created ${chunks.length} chunks.`,
+        };
+        res.json(response);
+      } catch (error) {
+        console.error('Upload processing error:', error);
+        res.status(500).json({
+          success: false,
+          message: error instanceof Error ? error.message : 'Failed to process document',
+        });
+      }
+    },
+  );
 
-    // Store chunks in vector database
-    await vectorStore.addDocumentChunks(documentId, chunks, {
-      filename: req.file.filename,
-      originalName: filename
-    });
-
-    const response: UploadResponse = {
-      success: true,
-      documentId,
-      filename,
-      chunks: chunks.length,
-      message: `Document processed successfully. Created ${chunks.length} chunks.`
-    };
-
-    res.json(response);
-
-  } catch (error) {
-    console.error('Upload processing error:', error);
-    res.status(500).json({
-      success: false,
-      message: error instanceof Error ? error.message : 'Failed to process document'
-    });
-  }
-});
-
-export { router as uploadRoutes }; 
+  return router;
+}

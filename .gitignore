@@ -1,2 +1,20 @@
-node_modules
+node_modules/
+dist/
+uploads/
+coverage/
+
+# Secrets: only env.example is tracked
 .env
+.env.*
+!env.example
+
+.DS_Store
+test-results.json
+
+# Corpus files are downloaded, not committed (see corpus/sources.json)
+corpus/raw/
+corpus/rendered/
+corpus/packets/
+
+# Tesseract language data cache
+.cache/

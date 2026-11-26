@@ -1,0 +1,165 @@
+{
+  "sources": [
+    {
+      "id": "ocv-fund-i-lpa-2018",
+      "title": "OCV Fund I, L.P. Second Amended and Restated Limited Partnership Agreement (19 January 2018)",
+      "publisher": "J2 Global, Inc. Form 10-K FY2017, Exhibit 10.9 (SEC EDGAR)",
+      "url": "https://www.sec.gov/Archives/edgar/data/1084048/000108404818000001/jcom20171231ex-109.htm",
+      "kind": "edgar_html",
+      "expected_type": "lpa",
+      "template_family": "ocv-fund-i",
+      "license": {
+        "summary": "Exhibit to a public SEC filing. Public record, retrievable by anyone from EDGAR. Not committed (the text belongs to its drafters); quoted passages and page images are shown on the demo with a link to the filing.",
+        "may_commit": false,
+        "public_demo": true
+      },
+      "sha256": null,
+      "rendered_pages_sha256": null,
+      "notes": "Closest to a typical VC fund LPA in the set. Carried interest 20% per Ziff Davis FY2025 10-K."
+    },
+    {
+      "id": "nb-crossroads-v-holdings-lpa-2018",
+      "title": "Limited Partnership Agreement of NB Crossroads Private Markets Fund V Holdings LP",
+      "publisher": "NB Crossroads Private Markets Fund V Holdings LP, Exhibit 99.(a)(2) (SEC EDGAR)",
+      "url": "https://www.sec.gov/Archives/edgar/data/1702885/000114036118024729/ex99_a2.htm",
+      "kind": "edgar_html",
+      "expected_type": "lpa",
+      "template_family": "nb-crossroads",
+      "license": {
+        "summary": "Exhibit to a public SEC filing. Public record, retrievable by anyone from EDGAR. Not committed; quoted passages and page images are shown on the demo with a link to the filing.",
+        "may_commit": false,
+        "public_demo": true
+      },
+      "sha256": null,
+      "rendered_pages_sha256": null,
+      "notes": "1940-Act registered fund. 7% carry after LPs receive 125% of contributions; no fund-level management fee (it sits in the advisory agreement). Exercises not_found and a multiple-of-capital hurdle. HTML has printed page numbers and '* * *' page separators."
+    },
+    {
+      "id": "rand-capital-sbic-lpa-2002",
+      "title": "Rand Capital SBIC, L.P. Agreement of Limited Partnership (16 January 2002)",
+      "publisher": "Rand Capital Corp Form 10-K FY2001, Exhibit 10.3 (SEC EDGAR)",
+      "url": "https://www.sec.gov/Archives/edgar/data/0000081955/000089979702000059/lpagreement.htm",
+      "kind": "edgar_html",
+      "expected_type": "lpa",
+      "template_family": "rand-capital-sbic",
+      "license": {
+        "summary": "Exhibit to a public SEC filing. Public record, retrievable by anyone from EDGAR. Not committed; quoted passages and page images are shown on the demo with a link to the filing.",
+        "may_commit": false,
+        "public_demo": true
+      },
+      "sha256": null,
+      "rendered_pages_sha256": null,
+      "notes": "SBA-regulated SBIC structure from 2002; the parent corporation is the main limited partner."
+    },
+    {
+      "id": "ilpa-model-lpa-wof",
+      "title": "ILPA Model Limited Partnership Agreement, Whole-of-Fund Waterfall (July 2020)",
+      "publisher": "Institutional Limited Partners Association",
+      "url": "https://ilpa.org/wp-content/uploads/2020/07/ILPA-Model-Limited-Partnership-Agreement-WOF.pdf",
+      "kind": "pdf",
+      "expected_type": "lpa",
+      "template_family": "ilpa-model-lpa",
+      "license": {
+        "summary": "ILPA Terms of Use (ilpa.org/terms-of-use, read 25 Nov 2026): no reproduction, public display or posting in a networked environment without ILPA's written permission. Local development and evaluation only; never hosted or shown on the public demo.",
+        "may_commit": false,
+        "public_demo": false
+      },
+      "sha256": null,
+      "rendered_pages_sha256": null,
+      "notes": "Template with bracketed blanks: most economic terms should come back as 'placeholder', not a value."
+    },
+    {
+      "id": "ilpa-model-lpa-dbd",
+      "title": "ILPA Model Limited Partnership Agreement, Deal-by-Deal Waterfall (July 2020)",
+      "publisher": "Institutional Limited Partners Association",
+      "url": "https://ilpa.org/wp-content/uploads/2020/07/ILPA-Model-Limited-Parnership-Agreement-Deal-By-Deal.pdf",
+      "kind": "pdf",
+      "expected_type": "lpa",
+      "template_family": "ilpa-model-lpa",
+      "license": {
+        "summary": "ILPA Terms of Use (ilpa.org/terms-of-use, read 25 Nov 2026): no reproduction, public display or posting in a networked environment without ILPA's written permission. Local development and evaluation only; never hosted or shown on the public demo.",
+        "may_commit": false,
+        "public_demo": false
+      },
+      "sha256": null,
+      "rendered_pages_sha256": null,
+      "notes": "Same family as the WOF version: shares most text, differs in the waterfall. The URL's 'Parnership' typo is ILPA's own."
+    },
+    {
+      "id": "ilpa-model-lpa-term-sheet-wof",
+      "title": "ILPA Model LPA Term Sheet, Whole-of-Fund Version",
+      "publisher": "Institutional Limited Partners Association",
+      "url": "https://ilpa.org/wp-content/uploads/2020/07/ILPA-Model-LPA-Term-Sheet-WOF-Version.pdf",
+      "kind": "pdf",
+      "expected_type": "lpa_term_sheet",
+      "template_family": "ilpa-model-lpa-term-sheet",
+      "license": {
+        "summary": "ILPA Terms of Use: local development and evaluation only; never hosted or shown on the public demo.",
+        "may_commit": false,
+        "public_demo": false
+      },
+      "sha256": null,
+      "rendered_pages_sha256": null
+    },
+    {
+      "id": "ilpa-ccd-sample-notice-2025",
+      "title": "ILPA Sample Capital Call & Distribution Notice (cover and description letter, 2025)",
+      "publisher": "Institutional Limited Partners Association",
+      "url": "https://ilpa.org/wp-content/uploads/2025/10/ILPA-Sample-Cover-Description-Letter-2025.pdf",
+      "kind": "pdf",
+      "expected_type": "capital_call_and_distribution_notice",
+      "template_family": "ilpa-ccd-template-2025",
+      "license": {
+        "summary": "ILPA Terms of Use: local development and evaluation only; never hosted or shown on the public demo.",
+        "may_commit": false,
+        "public_demo": false
+      },
+      "sha256": null,
+      "rendered_pages_sha256": null
+    },
+    {
+      "id": "ilpa-ccd-best-practices-2011",
+      "title": "ILPA Capital Call & Distribution Notice Best Practices, Version 1.1 (October 2011)",
+      "publisher": "Institutional Limited Partners Association",
+      "url": "https://ilpa.org/wp-content/uploads/2019/05/ILPA-Best-Practices-Capital-Calls-Distribution-Notices_Version-1.1.pdf",
+      "kind": "pdf",
+      "expected_type": "other",
+      "template_family": "ilpa-ccd-template-2011",
+      "license": {
+        "summary": "ILPA Terms of Use: local development and evaluation only; never hosted or shown on the public demo.",
+        "may_commit": false,
+        "public_demo": false
+      },
+      "sha256": null,
+      "rendered_pages_sha256": null,
+      "notes": "Guidance document that contains a notice template. A hard negative for the classifier: it talks about capital calls but is not a notice."
+    }
+  ],
+  "wanted": [
+    {
+      "description": "About 6 more LPAs filed as EDGAR exhibits, ideally VC or growth-equity funds with typical economics (2/20, 8% hurdle, key person, clawback).",
+      "why": "The gold set needs about 10 LPAs across several template families.",
+      "blocker": "Run scripts/corpus-candidates.ts (needs EDGAR_USER_AGENT); the owner picks which to add."
+    },
+    {
+      "description": "ILPA Model LPA Term Sheet, Deal-by-Deal version (PDF).",
+      "why": "Pairs with the DBD model LPA.",
+      "blocker": "Direct PDF URL not confirmed yet."
+    },
+    {
+      "description": "NVCA model financing documents (stock purchase agreement, investors' rights agreement, voting agreement).",
+      "why": "Realistic 'other' class and long legal documents with defined terms.",
+      "blocker": "Published as Word files: need LibreOffice to render to PDF, and the nvca.org Terms of Use must be read before deciding may_commit/public_demo."
+    },
+    {
+      "description": "Y Combinator post-money SAFE.",
+      "why": "SAFE class for classification and packet tests.",
+      "blocker": "CC BY-ND: download at test time only; never commit, modify or host a copy."
+    },
+    {
+      "description": "Side letters and subscription agreements filed on EDGAR.",
+      "why": "Classification classes with no public example yet; reported with n per class.",
+      "blocker": "Needs an EDGAR full-text search; few are public."
+    }
+  ]
+}
