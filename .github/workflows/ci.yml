@@ -58,6 +58,16 @@ jobs:
       - name: Build
         run: npm run build
 
+      # Fails when src/db/schema.ts changed without a committed migration.
+      - name: Check migrations match the schema
+        run: |
+          npx drizzle-kit generate --name schema_drift_check
+          if [ -n "$(git status --porcelain drizzle)" ]; then
+            git status --porcelain drizzle
+            echo "::error::schema.ts differs from the migrations; run npm run db:generate and commit"
+            exit 1
+          fi
+
       # Fails here, with a clear message, if the service container is broken,
       # instead of later as a confusing test error.
       - name: Check pgvector

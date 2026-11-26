@@ -41,3 +41,4 @@ What this makes easy, what it makes hard, and what would make us revisit it.
 | [0002](0002-corpus-and-rendering.md) | Pin the corpus by manifest and render EDGAR HTML with Chromium | accepted |
 | [0003](0003-pdf-parser.md)           | Extract PDF text page by page with unpdf                       | accepted |
 | [0004](0004-ocr.md)                  | OCR pages without a text layer with tesseract.js               | accepted |
+| [0005](0005-drizzle-postgres.md)     | Store documents in Postgres + pgvector through Drizzle         | accepted |
