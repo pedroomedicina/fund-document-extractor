@@ -35,6 +35,7 @@ What this makes easy, what it makes hard, and what would make us revisit it.
 
 ## Index
 
-| #                                 | Decision                                             | Status   |
-| --------------------------------- | ---------------------------------------------------- | -------- |
-| [0001](0001-developer-tooling.md) | Biome, Vitest and TypeScript 7 for developer tooling | accepted |
+| #                                    | Decision                                                       | Status   |
+| ------------------------------------ | -------------------------------------------------------------- | -------- |
+| [0001](0001-developer-tooling.md)    | Biome, Vitest and TypeScript 7 for developer tooling           | accepted |
+| [0002](0002-corpus-and-rendering.md) | Pin the corpus by manifest and render EDGAR HTML with Chromium | accepted |

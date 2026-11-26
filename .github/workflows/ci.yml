@@ -45,6 +45,10 @@ jobs:
       - name: Install
         run: npm ci
 
+      # Headless Chromium for the EDGAR render test (decision 0002).
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
       - name: Lint and format
         run: npx biome ci .
 
