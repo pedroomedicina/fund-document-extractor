@@ -9,22 +9,13 @@ describe('loadConfig', () => {
     expect(() => loadConfig({ LLM_MODEL: '   ' })).toThrow(/LLM_MODEL/);
   });
 
-  it('uses defaults: 10 MB upload limit, port 3000, uploads allowed', () => {
-    const config = loadConfig({ LLM_MODEL: 'some-model' });
-    expect(config.maxFileSize).toBe(10 * 1024 * 1024);
-    expect(config.port).toBe(3000);
-    expect(config.allowUploads).toBe(true);
-    expect(path.isAbsolute(config.uploadDir)).toBe(true);
+  it('defaults PORT to 3000', () => {
+    expect(loadConfig({ LLM_MODEL: 'some-model' }).port).toBe(3000);
   });
 
-  it('rejects malformed numbers and booleans instead of falling back silently', () => {
-    expect(() => loadConfig({ LLM_MODEL: 'm', MAX_FILE_SIZE: '10MB' })).toThrow(/MAX_FILE_SIZE/);
+  it('rejects a malformed PORT instead of falling back silently', () => {
     expect(() => loadConfig({ LLM_MODEL: 'm', PORT: '-1' })).toThrow(/PORT/);
-    expect(() => loadConfig({ LLM_MODEL: 'm', ALLOW_UPLOADS: 'maybe' })).toThrow(/ALLOW_UPLOADS/);
-  });
-
-  it('parses ALLOW_UPLOADS=false for the public demo', () => {
-    expect(loadConfig({ LLM_MODEL: 'm', ALLOW_UPLOADS: 'false' }).allowUploads).toBe(false);
+    expect(() => loadConfig({ LLM_MODEL: 'm', PORT: '3000abc' })).toThrow(/PORT/);
   });
 });
 
@@ -40,10 +31,15 @@ describe('env.example', () => {
       }),
   );
 
-  it('documents a 10 MB upload limit that loadConfig accepts', () => {
-    expect(settings.get('MAX_FILE_SIZE')).toBe(String(10 * 1024 * 1024));
-    const config = loadConfig({ LLM_MODEL: 'm', MAX_FILE_SIZE: settings.get('MAX_FILE_SIZE') });
-    expect(config.maxFileSize).toBe(10 * 1024 * 1024);
+  it('parses with loadConfig once LLM_MODEL is filled in', () => {
+    const env = Object.fromEntries(settings);
+    expect(env.LLM_MODEL).toBe('');
+    const config = loadConfig({ ...env, LLM_MODEL: 'm' });
+    expect(config.port).toBe(Number(settings.get('PORT')));
+  });
+
+  it('lists no upload settings the code never reads', () => {
+    expect(example).not.toMatch(/UPLOAD|MAX_FILE_SIZE/);
   });
 
   it('lists no vector-store settings the code never reads', () => {

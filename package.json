@@ -24,30 +24,21 @@
     "db:migrate": "tsx scripts/db-migrate.ts"
   },
   "dependencies": {
-    "@langchain/core": "^0.3.64",
-    "@langchain/openai": "^0.6.1",
     "@napi-rs/canvas": "^1.2.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.0",
     "drizzle-orm": "^0.45.4",
     "effect": "^4.1.5",
     "express": "^5.1.0",
-    "langchain": "^0.3.30",
-    "multer": "^2.0.1",
-    "openai": "^5.10.1",
-    "pdf-parse": "^1.1.1",
     "pg": "^8.23.1",
     "tesseract.js": "^7.0.0",
-    "unpdf": "^1.9.1",
-    "uuid": "^11.1.0"
+    "unpdf": "^1.9.1"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.6.9",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
-    "@types/multer": "^2.0.0",
     "@types/node": "^22.0.0",
-    "@types/pdf-parse": "^1.1.5",
     "@types/pg": "^8.23.1",
     "@types/supertest": "^7.2.1",
     "drizzle-kit": "^0.31.11",
