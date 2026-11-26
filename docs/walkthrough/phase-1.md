@@ -7,7 +7,7 @@
 > **Status: be honest about this in the interview.** The building blocks are done and tested on synthetic fixtures. Not done yet:
 > - The corpus has **never been fetched or pinned**: all 8 `sha256` values in `corpus/sources.json` are `null`, so there is no render report and no real LPA in the database yet.
 > - There is **no script that runs `indexPdf`** on the corpus; only tests call it.
-> - **Embeddings aren't computed** (the column exists and is nullable), and `/api/qa` still uses the old in-memory store, so **hybrid search (1e) isn't built**.
+> - **Embeddings aren't computed** (the column exists and is nullable), so **hybrid search (1e) isn't built**.
 >
 > These are the first things to finish before the extractor, because Phase 2 needs real chunks to retrieve from.
 
