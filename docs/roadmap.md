@@ -19,6 +19,8 @@ A to D is about 115–135 hours, roughly 3.5 to 4 months. The first number a rev
 
 **Postponed until after E:** document upload, login, other document types (capital call notices, NVCA documents, SAFEs, side letters), and further ingestion polish (KB-1, PDF repair).
 
+**Labels come from a person reading the page, never from a model.** No LLM (Claude, the extractor's model or the baseline's) suggests, pre-fills or checks the value of a gold label, in the dev set or the held-out set. If a model proposes values and they are accepted, the answer key carries that model's blind spots, and the comparison with the baseline partly measures agreement with itself. Tools may help in ways that don't decide a value: keyword search to find a clause (the page is then read), a script that checks a label's quote is on its cited page, and help writing the labelling guide. The same rule as the Python project's decision 0004. It goes into the labelling guide, and the answer-key decision record says how it was followed.
+
 ---
 
 ## Phase A: thin extraction
@@ -27,7 +29,7 @@ A to D is about 115–135 hours, roughly 3.5 to 4 months. The first number a rev
 
 **Tasks**
 
-1. **Labelling guide v1 and value schemas.** Write them before the prompt, because the extractor's output and the labels must mean the same thing. Cover fee step-downs and basis (committed or invested capital), carry catch-up, hurdles stated as a multiple (NB Crossroads: 125% of contributions), terms defined in one article and used in another, and how values are normalised. Label a **dev set**: the three EDGAR LPAs plus two ILPA model LPAs (bracketed blanks, so `placeholder`). The dev set is for building and is never reported.
+1. **Labelling guide v1 and value schemas.** Write them before the prompt, because the extractor's output and the labels must mean the same thing. Cover fee step-downs and basis (committed or invested capital), carry catch-up, hurdles stated as a multiple (NB Crossroads: 125% of contributions), terms defined in one article and used in another, and how values are normalised. Label a **dev set**: the three EDGAR LPAs plus two ILPA model LPAs (bracketed blanks, so `placeholder`). The dev set is for building and is never reported. Dev labels follow the same no-model rule as held-out labels.
 2. **LLM client** behind an `Llm` interface. Every call is written to `llm_calls` with tokens, cost and latency, and the `LLM_MONTHLY_BUDGET_USD` cap is enforced before a call is made.
 3. **Retrieval per field.** Search terms that include each document's own defined terms. Leave table-of-contents chunks out (this amends 0008). Pull in the Definitions entry for a defined term the clause uses, and sections it cites through `sectionRefs`.
 4. **One structured-output call per field**, returning value, page range, quote and status.
@@ -58,7 +60,7 @@ A to D is about 115–135 hours, roughly 3.5 to 4 months. The first number a rev
 
 1. **Sourcing spike, capped at 8 hours.** Most LPAs on EDGAR are for MLPs and REIT operating partnerships, which have no fee or carry; fund LPAs appear as exhibits from public sponsors or investors, registered funds of funds and SBICs. Screen candidates, then pin about 15 held-out LPAs from at least six template families in `corpus/sources.json`. Write `scripts/corpus-candidates.ts` or document the manual search. Fewer than about 10 usable LPAs means revisiting 0009.
 2. **Labelling guide v2** from what the dev set taught, then **freeze it** before labelling held-out documents.
-3. **Label blind,** before running anything on those documents: value, pages and verbatim quote, or `not_found`. Time each document.
+3. **Label blind,** by hand and before running anything on those documents: value, pages and verbatim quote, or `not_found`. No model suggests a value (see the labelling rule above). Time each document.
 4. **Eval harness.** Run the pipeline and the baseline (the same model given the whole document, with the same output schema and the same quote check), record every LLM response so a run can be replayed, and score.
 5. **Report**, per field and per template family, as counts (`13/15`), not only percentages:
    - correct values;
