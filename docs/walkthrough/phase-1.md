@@ -4,12 +4,7 @@
 
 **Commits:** `e098baf` (normalizer) → `5244f0e` (corpus) → `e57ba96` (quality) → `cb47102` (chunker) → `359e0fb` (ingestion) → `1438f38` (Postgres) → `f69d081` (known bugs).
 
-> **Status: be honest about this in the interview.** The building blocks are done and tested on synthetic fixtures. Not done yet:
-> - The corpus has **never been fetched or pinned**: all 8 `sha256` values in `corpus/sources.json` are `null`, so there is no render report and no real LPA in the database yet.
-> - There is **no script that runs `indexPdf`** on the corpus; only tests call it.
-> - **Embeddings aren't computed** (the column exists and is nullable), so **hybrid search (1e) isn't built**.
->
-> These are the first things to finish before the extractor, because Phase 2 needs real chunks to retrieve from.
+> **Status (26 November 2026): done.** When sections 1–8 were written, the building blocks were tested only on synthetic fixtures: the corpus wasn't fetched or pinned, no script ran `indexPdf` on it, and there were no embeddings or hybrid search. All of that was finished afterwards and is described in [section 9](#9-real-corpus-fit-to-filed-pages-ingest-embed-hybrid-search). What comes next is in the [roadmap](../roadmap.md): "Phase 2" below means the plan before [decision 0009](../decisions/0009-thin-evaluated-slice-first.md), now Phase A.
 
 ---
 

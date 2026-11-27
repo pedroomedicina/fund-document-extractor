@@ -137,9 +137,9 @@
   ],
   "wanted": [
     {
-      "description": "About 6 more LPAs filed as EDGAR exhibits, ideally VC or growth-equity funds with typical economics (2/20, 8% hurdle, key person, clawback).",
-      "why": "The gold set needs about 10 LPAs across several template families.",
-      "blocker": "Run scripts/corpus-candidates.ts (needs EDGAR_USER_AGENT); the owner picks which to add."
+      "description": "About 15 held-out LPAs filed as EDGAR exhibits, from at least six template families, with a conventional management fee, carried interest and preferred return (or a clear absence of one).",
+      "why": "Phase B scores the three Phase A fields on documents never used while building the extractor (docs/roadmap.md, decision 0009). Fewer than about 10 usable LPAs means revisiting 0009.",
+      "blocker": "Most EDGAR 'limited partnership agreements' are MLP or REIT operating partnerships with no fee or carry. Needs a sourcing spike (capped at 8 hours) and a candidates script, scripts/corpus-candidates.ts, not written yet (needs EDGAR_USER_AGENT); the owner picks which to add."
     },
     {
       "description": "ILPA Model LPA Term Sheet, Deal-by-Deal version (PDF).",
@@ -148,17 +148,17 @@
     },
     {
       "description": "NVCA model financing documents (stock purchase agreement, investors' rights agreement, voting agreement).",
-      "why": "Realistic 'other' class and long legal documents with defined terms.",
+      "why": "Realistic 'other' class and long legal documents with defined terms. Postponed until after Phase E (decision 0009).",
       "blocker": "Published as Word files: need LibreOffice to render to PDF, and the nvca.org Terms of Use must be read before deciding may_commit/public_demo."
     },
     {
       "description": "Y Combinator post-money SAFE.",
-      "why": "SAFE class for classification and packet tests.",
+      "why": "SAFE class for classification and packet tests. Postponed until after Phase E (decision 0009).",
       "blocker": "CC BY-ND: download at test time only; never commit, modify or host a copy."
     },
     {
       "description": "Side letters and subscription agreements filed on EDGAR.",
-      "why": "Classification classes with no public example yet; reported with n per class.",
+      "why": "Classification classes with no public example yet; reported with n per class. Postponed until after Phase E (decision 0009).",
       "blocker": "Needs an EDGAR full-text search; few are public."
     }
   ]

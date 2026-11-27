@@ -1,18 +1,19 @@
 # Fund Document Extractor
 
-Turns fund documents, starting with Limited Partnership Agreements, into validated, typed data. Every extracted fact (management fee, carried interest, hurdle, investment period, key person, clawback) comes with the page it's on and a verbatim quote from that page. A value whose quote can't be found on its cited page is never accepted: it goes to a human reviewer.
+Turns fund documents, starting with Limited Partnership Agreements, into validated, typed data. Every extracted fact comes with the page it's on and a verbatim quote from that page. A value whose quote can't be found on its cited page is never accepted: it goes to a human reviewer. The first three fields are the management fee, carried interest and preferred return; investment period, key person and clawback follow once those are measured.
 
 TypeScript · Node 22 · Express · PostgreSQL + pgvector · Drizzle · Effect · unpdf · tesseract.js · OpenAI
 
-> **Status:** work in progress. The public corpus is pinned, rendered and ingested, with embeddings and hybrid search. The LLM extractor, review UI, evaluation and public demo are next. See [Status](#status).
+> **Status:** work in progress. The public corpus is pinned, rendered and ingested, with embeddings and hybrid search. Next: extraction of three fields, then an evaluation against hand-labelled LPAs, then a public demo of the evaluated results ([roadmap](docs/roadmap.md), [decision 0009](docs/decisions/0009-thin-evaluated-slice-first.md)). See [Status](#status).
 
 ## Live demo
 
-_Not deployed yet._ It will open on a preloaded set of public LPAs from SEC EDGAR, with no upload needed:
+_Not deployed yet (Phase C)._ It will be a read-only page on a preloaded set of public LPAs from SEC EDGAR, with no upload and no login:
 
-- pick a document and see each extracted field with its status and confidence,
-- click a field to jump to its page with the quote highlighted,
-- open a field marked `not_found` to see which sections were searched.
+- pick a document and see the three extracted fields with their status,
+- click a field to jump to its page with the quote highlighted, and a link to the filing.
+
+The values shown will be the same run that the evaluation scores.
 
 ## How it works
 
@@ -28,9 +29,11 @@ flowchart LR
   C --> E[Embed chunks]
   E --> DB[(Postgres + pgvector)]
   DB --> H[Hybrid search<br/>keyword + vector, RRF]
-  H --> X[Extract fields with the LLM<br/>· planned]
-  X --> V[Check each quote is<br/>on its cited page · planned]
-  V --> UI[Review UI · planned]
+  H --> X[Extract 3 fields with the LLM<br/>· Phase A]
+  X --> V[Check each quote is<br/>on its cited pages · Phase A]
+  V --> EV[Score against labels<br/>and a baseline · Phase B]
+  EV --> D[Read-only demo · Phase C]
+  V -.-> UI[Review UI · Phase E]
 ```
 
 1. **Pin the sources.** [`corpus/sources.json`](corpus/sources.json) lists each document with its URL, licence and the sha256 of its bytes. A source whose content changes is refused, because it could move text under existing labels.
@@ -39,7 +42,8 @@ flowchart LR
 4. **Chunk by legal structure.** Chunks follow articles and numbered sections, record the pages they span, and keep section numbers so "subject to Section 8.1" can be resolved.
 5. **Store once, consistently.** Documents are keyed by content hash. Re-indexing replaces pages and chunks in one transaction, with keyword and vector indexes in the same database.
 6. **Find the clause.** Chunks are embedded with `text-embedding-3-small`. Hybrid search fuses full-text and vector rankings by reciprocal rank, so both exact defined terms and paraphrases are found.
-7. **Extract and validate** _(planned)_. Each field gets a value, page range, quote, confidence and status (`found`, `uncertain`, `not_found`, `placeholder`). If the quote isn't on its page or doesn't contain the value, the model gets one retry with the errors, then the field goes to review.
+7. **Extract and validate** _(Phase A)_. Each field gets a value, page range, quote and status (`found`, `uncertain`, `not_found`, `placeholder`, `needs_review`). If the quote isn't on its pages or doesn't contain the value, the model gets one retry with the errors, then the field goes to review.
+8. **Measure** _(Phase B)_. Hand-labelled, held-out EDGAR LPAs score the pipeline against a baseline: the same model given the whole document, with no retrieval.
 
 ## Why you can trust the output
 
@@ -47,28 +51,29 @@ flowchart LR
 - **Pinned inputs.** Source bytes and rendered pagination are hashed, so evaluation labels can't silently point at the wrong page.
 - **Nothing fails silently.** Unreadable or low-quality documents get an explicit `needs_review` status and a trace of every step tried.
 - **Corrections are kept separately.** Reviews never overwrite what the model extracted, so the model can be measured against them.
-- **Measured, not assumed** _(planned)_. An evaluation against hand-labelled LPAs, per field and per document template, gates CI.
+- **Measured, not assumed** _(Phase B)_. An evaluation against hand-labelled LPAs, per field and per document template, against a whole-document baseline. It becomes a CI gate in Phase E.
 
 ## Evaluation
 
-_Planned for Phase 3._ This table will hold per-field accuracy, completeness, false positives, and cost and latency per document, for the model in use.
+_Phase B._ When it exists, this table moves to the top of this README. It will report, per field and per template family, as counts: correct values, review rate, values whose quote is real but whose value is wrong, quotes that failed the check before and after the retry, and cost and latency per document, for the pipeline and the baseline, with the failures and their causes.
 
 ## Status
 
-| Area                                                      | State                                          |
-| --------------------------------------------------------- | ---------------------------------------------- |
-| Repo cleanup, config, error handling, CI                  | Done                                           |
-| Remove prototype upload and Q&A endpoints                 | Done                                           |
-| Source manifest, fetch with hash pinning, EDGAR rendering | Done; 8 sources fetched, 3 EDGAR LPAs rendered |
-| Page-by-page extraction, OCR fallback, quality gate       | Done                                           |
-| Chunker for LPAs (articles, sections, page ranges)        | Done                                           |
-| Postgres schema, migrations, transactional re-indexing    | Done                                           |
-| Ingest script for the corpus, embeddings, hybrid search   | Done; 381 chunks embedded                      |
-| LLM extraction with quote validation, review UI           | Next                                           |
-| Evaluation with a CI gate                                 | Planned                                        |
-| Public deployment                                         | Planned                                        |
+| Phase | Area                                                                        | State                                                                 |
+| ----- | --------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| 0–1   | Repo cleanup, config, error handling, CI; prototype endpoints removed       | Done                                                                  |
+| 0–1   | Pinned corpus, EDGAR rendering, per-page text with OCR, quality gate        | Done; 8 sources fetched, 3 EDGAR LPAs rendered                        |
+| 0–1   | Chunker, Postgres + pgvector, embeddings, hybrid search                     | Done; 381 chunks embedded                                             |
+| A     | Extract 3 fields (fee, carry, preferred return), quote check, one retry     | Next                                                                  |
+| B     | Evaluation on hand-labelled EDGAR LPAs against a whole-document baseline    | Planned                                                               |
+| C     | Read-only public demo and 90-second video                                   | Planned                                                               |
+| D     | Case study, 5-minute review guide, expert check of labels                   | Planned                                                               |
+| E     | Investment period, key person, clawback; CI eval gate; review UI; more docs | Later                                                                 |
+| —     | Upload, login, other document types                                         | Postponed ([0009](docs/decisions/0009-thin-evaluated-slice-first.md)) |
 
-The HTTP API is `/health` only for now. The prototype upload and Q&A endpoints were removed rather than hardened ([decision 0006](docs/decisions/0006-remove-prototype-endpoints.md)); extraction endpoints arrive in Phase 2.
+Each phase's goal, tasks, checklist and estimate are in the [roadmap](docs/roadmap.md).
+
+The HTTP API is `/health` only for now. The prototype upload and Q&A endpoints were removed rather than hardened ([decision 0006](docs/decisions/0006-remove-prototype-endpoints.md)). Whether the Phase C demo needs extraction endpoints at all is decided with the demo.
 
 Known defects are listed in [docs/known-bugs.md](docs/known-bugs.md).
 
@@ -122,6 +127,7 @@ test/         unit and integration tests, fixtures
 
 ## Documentation
 
+- [Roadmap](docs/roadmap.md): the phases from here, with checklists, estimates and the decision records each will need.
 - [Decision records](docs/decisions/README.md): every library and design choice, with the alternatives considered.
 - [Walkthroughs](docs/walkthrough/README.md): what each part does, how it works and how it fails, phase by phase.
 - [Chunking spec](docs/chunking_spec.md)

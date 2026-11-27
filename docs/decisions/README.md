@@ -45,3 +45,6 @@ What this makes easy, what it makes hard, and what would make us revisit it.
 | [0006](0006-remove-prototype-endpoints.md)            | Remove the prototype upload and Q&A endpoints                              | accepted                  |
 | [0007](0007-fit-filed-pages-and-stable-corpus-ids.md) | Fit each filed page onto one PDF page; key corpus documents by source hash | accepted                  |
 | [0008](0008-embeddings-and-hybrid-search.md)          | Embed with text-embedding-3-small; fuse keyword and vector search by rank  | accepted                  |
+| [0009](0009-thin-evaluated-slice-first.md)            | Build a thin, evaluated slice of three fields before widening any layer    | accepted                  |
+
+Decisions the coming phases will force, each written with its code, are listed in [docs/roadmap.md](../roadmap.md#decision-records-to-write).
