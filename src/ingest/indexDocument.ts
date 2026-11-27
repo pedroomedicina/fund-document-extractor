@@ -8,6 +8,13 @@ import { ingestPdf } from './pdf.js';
 
 export interface IndexOptions {
   filename: string;
+  /**
+   * Document id; defaults to the sha256 of the PDF bytes. Corpus documents pass the pinned
+   * sha256 of their source file instead: a PDF rendered from EDGAR HTML gets new bytes on
+   * every render (Chromium stamps a creation date), but the source and its pinned pagination
+   * fingerprint don't change, so the document keeps its id and its extractions.
+   */
+  id?: string;
   sourceId?: string | null;
   ocr: OcrEngine | null;
   chunking?: ChunkOptions;
@@ -19,7 +26,8 @@ export interface IndexReport extends StoreReport {
 }
 
 /**
- * PDF bytes -> pages -> chunks -> database. The document id is the sha256 of the bytes.
+ * PDF bytes -> pages -> chunks -> database. The document id is the sha256 of the bytes
+ * unless `options.id` gives one.
  *
  * Only documents whose text passed the quality gate are chunked (as in the Python chunker's
  * filter): a document sent to review keeps its pages for the reviewer but has no chunks,
@@ -46,7 +54,7 @@ export async function indexPdf(
   }
 
   const report = await storeDocument(db, {
-    id: sha256(bytes),
+    id: options.id ?? sha256(bytes),
     filename: options.filename,
     sourceId: options.sourceId ?? null,
     ingest,

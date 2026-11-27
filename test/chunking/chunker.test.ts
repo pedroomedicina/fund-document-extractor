@@ -34,6 +34,35 @@ describe('splitBlocks', () => {
     ]);
   });
 
+  it('takes the line after an article heading as its title, so the next section is found', () => {
+    // From OCV Fund I and Rand Capital SBIC: the title has a ";" or is in title case and
+    // has no sentence end. Read as a paragraph, it swallowed the section line after it.
+    for (const title of [
+      'MANAGEMENT FEE; PARTNERSHIP EXPENSES',
+      'General Provisions',
+      '[Reserved]',
+    ]) {
+      const blocks = splitBlocks(`ARTICLE 6\n${title}\n6.1 Management Fee.\n(a) The fee is paid.`);
+      expect(blocks.filter((b) => b.kind === 'heading').map((b) => b.text)).toEqual([
+        'ARTICLE 6',
+        title,
+      ]);
+      expect(blocks.find((b) => b.kind === 'paragraph')).toMatchObject({ sectionRef: '6.1' });
+    }
+  });
+
+  it('does not take a sentence after an article heading as its title', () => {
+    const blocks = splitBlocks(
+      'ARTICLE 6\nThe General Partner shall cause the Partnership to pay.',
+    );
+    expect(blocks.map((b) => b.kind)).toEqual(['heading', 'paragraph']);
+  });
+
+  it('keeps the title rule to the line right after an article heading', () => {
+    const blocks = splitBlocks('Text here.\nGeneral Provisions\nSection 1.01 Definitions.');
+    expect(blocks.every((b) => b.kind === 'paragraph')).toBe(true);
+  });
+
   it('does not treat a wrapped sentence starting with "Article 8 of" as a heading', () => {
     const blocks = splitBlocks('Article 8 of this Agreement sets out the waterfall, and the');
     expect(only(blocks).kind).toBe('paragraph');

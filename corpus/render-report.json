@@ -1,0 +1,26 @@
+{
+  "ocv-fund-i-lpa-2018": {
+    "pages": 63,
+    "filed_pages": 63,
+    "scale": 0.9,
+    "labelled_pages": 0,
+    "drift": [],
+    "fingerprint": "7a1cd495c4e9c8acdcea2490cae72f5443b39151417d03460cec25800e0857c4"
+  },
+  "nb-crossroads-v-holdings-lpa-2018": {
+    "pages": 50,
+    "filed_pages": 50,
+    "scale": 0.95,
+    "labelled_pages": 44,
+    "drift": [],
+    "fingerprint": "f26196e4dd1796438da213ba1a9e80c86071ed4888492d29725ee5c5713cddd7"
+  },
+  "rand-capital-sbic-lpa-2002": {
+    "pages": 36,
+    "filed_pages": null,
+    "scale": 1,
+    "labelled_pages": 0,
+    "drift": [],
+    "fingerprint": "c725b17c3b0eb3bdbad4612ea4102213ee3fb6243b9b384a6d022f2ec5b3373c"
+  }
+}

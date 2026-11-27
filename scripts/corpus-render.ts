@@ -8,14 +8,14 @@
  * Needs Chromium once: npx playwright install chromium
  * Writes corpus/render-report.json (committed: labels and drift only, no document text).
  */
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
 import { chromium } from 'playwright';
 import { rawFileName } from '../src/corpus/fetch.js';
 import { readManifest, updateSource, writeManifest } from '../src/corpus/manifest.js';
 import { checkLabelSequence, pagesFingerprint } from '../src/corpus/pageLabels.js';
-import { pdfPageTexts, renderHtmlToPdf } from '../src/corpus/render.js';
+import { renderHtmlToPdf, renderToFiledPages } from '../src/corpus/render.js';
 
 const MANIFEST = 'corpus/sources.json';
 const RAW_DIR = 'corpus/raw';
@@ -39,20 +39,35 @@ try {
       continue;
     }
 
-    const pdf = await renderHtmlToPdf(browser, path.resolve(htmlPath));
+    const fitted = await renderToFiledPages(
+      (scale) => renderHtmlToPdf(browser, path.resolve(htmlPath), scale),
+      readFileSync(htmlPath, 'utf8'),
+    );
+    const { pdf, pages } = fitted;
     writeFileSync(path.join(RENDERED_DIR, `${source.id}.pdf`), pdf);
-    const pages = await pdfPageTexts(pdf);
+    if (!fitted.fits) {
+      problems.push(
+        `${source.id}: no print scale gives one PDF page per filed page ` +
+          `(${fitted.filedPages} filed, ${pages.length} rendered at 100%)`,
+      );
+    }
     const labels = checkLabelSequence(pages);
     const fingerprint = pagesFingerprint(pages);
 
     report[source.id] = {
       pages: pages.length,
+      filed_pages: fitted.filedPages,
+      scale: fitted.scale,
       labelled_pages: labels.labelled,
       drift: labels.drift,
       fingerprint,
     };
     const driftNote = labels.drift.length === 0 ? 'no drift' : `${labels.drift.length} drift(s)`;
-    console.log(`${source.id}: ${pages.length} pages, ${labels.labelled} labelled, ${driftNote}`);
+    const filed = fitted.filedPages === null ? 'no filed breaks' : `${fitted.filedPages} filed`;
+    console.log(
+      `${source.id}: ${pages.length} pages (${filed}, scale ${fitted.scale}), ` +
+        `${labels.labelled} labelled, ${driftNote}`,
+    );
 
     if (source.rendered_pages_sha256 === null) {
       if (values.record) {

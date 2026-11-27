@@ -1,6 +1,6 @@
 # Pin the corpus by manifest and render EDGAR HTML with Chromium
 
-Status: accepted
+Status: accepted, amended by [0007](0007-fit-filed-pages-and-stable-corpus-ids.md)
 Date: 25 November 2026
 
 ## Context

@@ -20,6 +20,8 @@
     "test:ci": "vitest run --reporter=default --reporter=json --outputFile=test-results.json && node scripts/assert-no-skipped.mjs test-results.json",
     "corpus:fetch": "tsx scripts/corpus-fetch.ts",
     "corpus:render": "tsx scripts/corpus-render.ts",
+    "corpus:ingest": "tsx scripts/corpus-ingest.ts",
+    "search": "tsx scripts/search.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx scripts/db-migrate.ts"
   },

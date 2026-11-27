@@ -4,7 +4,7 @@ Turns fund documents, starting with Limited Partnership Agreements, into validat
 
 TypeScript · Node 22 · Express · PostgreSQL + pgvector · Drizzle · Effect · unpdf · tesseract.js · OpenAI
 
-> **Status:** work in progress. Ingestion, OCR, chunking and storage are built and tested. The LLM extractor, review UI, evaluation and public demo are next. See [Status](#status).
+> **Status:** work in progress. The public corpus is pinned, rendered and ingested, with embeddings and hybrid search. The LLM extractor, review UI, evaluation and public demo are next. See [Status](#status).
 
 ## Live demo
 
@@ -25,18 +25,21 @@ flowchart LR
   P --> Q
   Q -->|good enough to cite| C[Chunk by article<br/>and section]
   Q -->|poor| RV[Needs review]
-  C --> DB[(Postgres + pgvector)]
-  DB --> X[Extract fields with the LLM<br/>· planned]
+  C --> E[Embed chunks]
+  E --> DB[(Postgres + pgvector)]
+  DB --> H[Hybrid search<br/>keyword + vector, RRF]
+  H --> X[Extract fields with the LLM<br/>· planned]
   X --> V[Check each quote is<br/>on its cited page · planned]
   V --> UI[Review UI · planned]
 ```
 
 1. **Pin the sources.** [`corpus/sources.json`](corpus/sources.json) lists each document with its URL, licence and the sha256 of its bytes. A source whose content changes is refused, because it could move text under existing labels.
-2. **Get pages a lawyer would recognise.** EDGAR filings are HTML, so they're printed to PDF with headless Chromium, which follows the filing's page breaks. The printed page numbers are checked against the PDF pages, and the pagination is fingerprinted.
+2. **Get pages a lawyer would recognise.** EDGAR filings are HTML, so they're printed to PDF with headless Chromium, which follows the filing's page breaks. Content is scaled down until each filed page fits on one PDF page, the printed page numbers are checked against the PDF pages, and the pagination is fingerprinted.
 3. **Extract text per page, with OCR as a fallback.** Scanned pages go through Tesseract. A document whose text is still poor is sent to review, never passed on silently.
 4. **Chunk by legal structure.** Chunks follow articles and numbered sections, record the pages they span, and keep section numbers so "subject to Section 8.1" can be resolved.
 5. **Store once, consistently.** Documents are keyed by content hash. Re-indexing replaces pages and chunks in one transaction, with keyword and vector indexes in the same database.
-6. **Extract and validate** _(planned)_. Each field gets a value, page range, quote, confidence and status (`found`, `uncertain`, `not_found`, `placeholder`). If the quote isn't on its page or doesn't contain the value, the model gets one retry with the errors, then the field goes to review.
+6. **Find the clause.** Chunks are embedded with `text-embedding-3-small`. Hybrid search fuses full-text and vector rankings by reciprocal rank, so both exact defined terms and paraphrases are found.
+7. **Extract and validate** _(planned)_. Each field gets a value, page range, quote, confidence and status (`found`, `uncertain`, `not_found`, `placeholder`). If the quote isn't on its page or doesn't contain the value, the model gets one retry with the errors, then the field goes to review.
 
 ## Why you can trust the output
 
@@ -52,18 +55,18 @@ _Planned for Phase 3._ This table will hold per-field accuracy, completeness, fa
 
 ## Status
 
-| Area                                                      | State                                         |
-| --------------------------------------------------------- | --------------------------------------------- |
-| Repo cleanup, config, error handling, CI                  | Done                                          |
-| Remove prototype upload and Q&A endpoints                 | Done                                          |
-| Source manifest, fetch with hash pinning, EDGAR rendering | Built and tested; real corpus not fetched yet |
-| Page-by-page extraction, OCR fallback, quality gate       | Done                                          |
-| Chunker for LPAs (articles, sections, page ranges)        | Done                                          |
-| Postgres schema, migrations, transactional re-indexing    | Done                                          |
-| Ingest script for the corpus, embeddings, hybrid search   | Next                                          |
-| LLM extraction with quote validation, review UI           | Planned                                       |
-| Evaluation with a CI gate                                 | Planned                                       |
-| Public deployment                                         | Planned                                       |
+| Area                                                      | State                                          |
+| --------------------------------------------------------- | ---------------------------------------------- |
+| Repo cleanup, config, error handling, CI                  | Done                                           |
+| Remove prototype upload and Q&A endpoints                 | Done                                           |
+| Source manifest, fetch with hash pinning, EDGAR rendering | Done; 8 sources fetched, 3 EDGAR LPAs rendered |
+| Page-by-page extraction, OCR fallback, quality gate       | Done                                           |
+| Chunker for LPAs (articles, sections, page ranges)        | Done                                           |
+| Postgres schema, migrations, transactional re-indexing    | Done                                           |
+| Ingest script for the corpus, embeddings, hybrid search   | Done; 381 chunks embedded                      |
+| LLM extraction with quote validation, review UI           | Next                                           |
+| Evaluation with a CI gate                                 | Planned                                        |
+| Public deployment                                         | Planned                                        |
 
 The HTTP API is `/health` only for now. The prototype upload and Q&A endpoints were removed rather than hardened ([decision 0006](docs/decisions/0006-remove-prototype-endpoints.md)); extraction endpoints arrive in Phase 2.
 
@@ -79,6 +82,7 @@ docker compose up -d db          # Postgres 17 + pgvector on localhost:5433
 npx playwright install chromium  # for EDGAR rendering and PDF test fixtures
 cp env.example .env              # then fill in LLM_MODEL and keys
 npm run db:migrate
+npm run corpus:fetch && npm run corpus:render && npm run corpus:ingest
 npm run dev                      # http://localhost:3000/health
 ```
 
@@ -93,6 +97,8 @@ Every setting is described in [`env.example`](env.example). `LLM_MODEL` is requi
 | `npm run test:ci`       | Same, and fails if any test was skipped                                               |
 | `npm run corpus:fetch`  | Download the public corpus listed in `corpus/sources.json` (needs `EDGAR_USER_AGENT`) |
 | `npm run corpus:render` | Render EDGAR HTML to PDF and check printed page numbers                               |
+| `npm run corpus:ingest` | Store pages and chunks for the pinned corpus, then embed them (`--no-embed` to skip)  |
+| `npm run search`        | Try hybrid search: `npm run search -- --doc ocv-fund-i-lpa-2018 "management fee"`     |
 | `npm run db:generate`   | Generate a migration after editing `src/db/schema.ts`                                 |
 
 Tests written with `knownBug()` describe the correct behaviour for a defect listed in [docs/known-bugs.md](docs/known-bugs.md). They're expected to fail: when a fix lands, the test passes, the suite fails, and the fix changes `knownBug` to `it` in the same commit.
@@ -105,6 +111,7 @@ src/
   ingest/     page-by-page PDF text, OCR, text-quality score, indexing
   chunking/   chunker for legal documents
   db/         Drizzle schema, connection, storing documents
+  retrieval/  embeddings and hybrid (keyword + vector) search
   text/       normalization used to match quotes against page text
   app.ts      Express app: /health and the error handler
 corpus/       sources.json (downloaded and rendered files are not committed)
