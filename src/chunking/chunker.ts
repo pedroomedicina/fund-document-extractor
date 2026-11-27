@@ -43,7 +43,14 @@ const MAX_HEADING_CHARS = 120;
 /** "ARTICLE VIII", "Article 8", optionally followed by a short title on the same line. */
 const ARTICLE_RE = /^article\s+([ivxlc]+|\d+)\b[.:\-–—]?\s*(.*)$/i;
 /** An all-caps heading line, optionally numbered: "DEFINITIONS", "8. DISTRIBUTIONS". */
-const CAPS_HEADING_RE = /^(?:\d+(?:\.\d+)*[.)]?\s+)?[A-Z][A-Z0-9 \-/&,'’]{4,}$/;
+const CAPS_HEADING_RE = /^(?:\d+(?:\.\d+)*[.)]?\s+)?[A-Z][A-Z0-9 \-/&,;'’()]{4,}$/;
+/**
+ * The title line right after "ARTICLE 6", in any case: "MANAGEMENT FEE; PARTNERSHIP
+ * EXPENSES", "General Provisions", "[Reserved]". Without this, a title with no sentence
+ * end was read as an unfinished paragraph, and the "6.1 Management Fee." line after it as
+ * a wrapped continuation, so section 6.1 was lost.
+ */
+const ARTICLE_TITLE_RE = /^[[A-Z][A-Za-z0-9 \-/&,;'’()[\]]{1,80}$/;
 /** "Section 8.1", "SECTION 8.1(a)", "§ 8.1". */
 const SECTION_WORD_RE = /^(?:section|sec\.|§)\s*(\d+(?:\.\d+)*)(?:\([a-z0-9]+\))?[.:]?(?:\s|$)/i;
 /** "8.1 Management Fee." (a numbered section without the word "Section"). */
@@ -85,6 +92,13 @@ function headingText(line: string): string | null {
   return CAPS_HEADING_RE.test(line) ? line.replace(/\s+/g, ' ') : null;
 }
 
+/** A line that titles the article heading just before it (see ARTICLE_TITLE_RE). */
+function articleTitle(line: string, previous: Block | undefined): string | null {
+  if (previous?.kind !== 'heading' || !ARTICLE_RE.test(previous.text)) return null;
+  if (sectionRefOf(line) || !ARTICLE_TITLE_RE.test(line)) return null;
+  return line.replace(/\s+/g, ' ');
+}
+
 function sectionRefOf(line: string): string | null {
   return SECTION_WORD_RE.exec(line)?.[1] ?? SECTION_NUMBER_RE.exec(line)?.[1] ?? null;
 }
@@ -111,7 +125,7 @@ export function splitBlocks(text: string): Block[] {
     // Section starts and headings only count at a paragraph boundary: LPAs often wrap
     // "...as set forth in\nSection 8.1 hereof" mid-sentence.
     const atBoundary = buffer.length === 0;
-    const heading = atBoundary ? headingText(line) : null;
+    const heading = atBoundary ? (headingText(line) ?? articleTitle(line, blocks.at(-1))) : null;
     if (heading) {
       blocks.push({ kind: 'heading', text: heading });
       continue;
