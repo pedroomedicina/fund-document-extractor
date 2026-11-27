@@ -1,6 +1,6 @@
 # Store documents in Postgres + pgvector through Drizzle
 
-Status: accepted
+Status: accepted, amended by [0007](0007-fit-filed-pages-and-stable-corpus-ids.md)
 Date: 25 November 2026
 
 ## Context
@@ -29,4 +29,4 @@ The other choice is how TypeScript talks to Postgres: typed queries, and migrati
 - Embedding dimension 1536 (OpenAI `text-embedding-3-small`) is fixed in the schema. Changing models means a migration and a re-embed, recorded as its own decision.
 - `embedding` is nullable: ingestion and keyword search work without an API key, and embedding is a separate, costed step.
 - Re-indexing drops a document's embeddings with its chunks. That's correct (the text may have changed) but costs a re-embed.
-- Integration tests rebuild the `_test` database from the migrations before each test, so a migration that doesn't apply cleanly fails CI. They refuse to run against a database whose name doesn't end in `_test`. While there is only one DB test file this is safe under Vitest's parallel files; a second file will need its own database or serial execution.
+- Integration tests rebuild the `_test` database from the migrations before each test, so a migration that doesn't apply cleanly fails CI. They refuse to run against a database whose name doesn't end in `_test`. While there is only one DB test file this is safe under Vitest's parallel files; a second file will need its own database or serial execution. (Since 26 November 2026 there are three, and `vitest.config.ts` runs test files serially.)

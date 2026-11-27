@@ -182,6 +182,32 @@ Trace example: `["unpdf:low_text:coverage=0.00", "ocr_tesseract:pages=1:improved
 
 ---
 
+## 9. Real corpus: fit to filed pages, ingest, embed, hybrid search
+
+Added after the first run on the real corpus (26 November 2026). Decisions: [0007](../decisions/0007-fit-filed-pages-and-stable-corpus-ids.md), [0008](../decisions/0008-embeddings-and-hybrid-search.md).
+
+**What it does.** `corpus:render` now makes each filed page one PDF page. `corpus:ingest` ([corpus-ingest.ts](../../scripts/corpus-ingest.ts)) checks every file against the manifest, then indexes and embeds it. [hybridSearch](../../src/retrieval/hybrid.ts) returns the chunks for a query with their pages and section refs.
+
+**What the real corpus showed (and the fixtures didn't):**
+
+- **OCV overflowed:** 63 filed pages came out as 121 PDF pages at 100%, 15 of them blank. OCV has no printed page numbers, so the label check couldn't see it. `renderToFiledPages` counts the forced breaks and shrinks the content until the counts match (OCV fits at 0.9, NB Crossroads at 0.95). Tests: "shrinks to the largest scale…" and "reports fits: false…".
+- **Unstable ids:** a rendered PDF has new bytes on every render, so corpus documents now use the pinned sha256 of the source file as their id. Re-ingesting the corpus twice gave the same 8 documents and 381 chunks.
+- **Lost sections:** a title line after `ARTICLE 6` with a `;` (`MANAGEMENT FEE; PARTNERSHIP EXPENSES`), or in title case (Rand's `General Provisions`), was read as an unfinished paragraph. The `6.1 Management Fee.` line after it then looked like a wrapped continuation, so section 6.1 disappeared. The line right after an article heading is now taken as its title. Test: "takes the line after an article heading as its title…".
+
+**How hybrid search works.** One SQL query with two candidate lists: the top 40 by `ts_rank_cd` (keyword) and the top 40 by cosine distance (vector). Each chunk scores `1/(60 + rank)` from each list it's in, and the scores are summed (reciprocal rank fusion). Ties are broken by chunk id. Ranks, not raw scores, are fused, so the two scales never need tuning against each other.
+
+**How it fails.** Embedding errors: 429 and 5xx are retried with backoff, then the run fails. A wrong vector size is rejected before anything is stored. The response body is never logged, because it can echo document text. A file whose hash or fingerprint changed is refused before ingest. With no API key, `--no-embed` still gives keyword search.
+
+**Known weak spots (Phase 2 input).** The table of contents is the top keyword hit for "carried interest percentage" in OCV. NB Crossroads never says "incentive allocation", but vector search still finds its 93/7 waterfall in Section 8.2. Query sets per field should use each document's own defined terms, and TOC chunks should be left out of retrieval.
+
+**Likely questions**
+
+- _"Why RRF and not a weighted sum?"_ Cosine distance and ts_rank have unrelated scales, and ts_rank depends on chunk length. RRF uses only positions and has one constant with a published default (60).
+- _"How much did embedding cost?"_ 213k tokens for 381 chunks: $0.0043, recorded per batch in `llm_calls`.
+- _"Why shrink the page instead of splitting the HTML at its breaks?"_ Rand has no break markers, and filers mark breaks differently. One PDF pipeline handles every document, and the markers serve only as a check.
+
+---
+
 ## Explain-back checklist
 
 1. Trace a scanned 10-page PDF through `indexPdf`: what's in the trace, the status, and which tables get rows?

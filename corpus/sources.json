@@ -13,8 +13,8 @@
         "may_commit": false,
         "public_demo": true
       },
-      "sha256": null,
-      "rendered_pages_sha256": null,
+      "sha256": "5d59bc8cbee2fba13fb82f324db43001e8cb16b2d8cca1114bb16d8d467d0d70",
+      "rendered_pages_sha256": "7a1cd495c4e9c8acdcea2490cae72f5443b39151417d03460cec25800e0857c4",
       "notes": "Closest to a typical VC fund LPA in the set. Carried interest 20% per Ziff Davis FY2025 10-K."
     },
     {
@@ -30,8 +30,8 @@
         "may_commit": false,
         "public_demo": true
       },
-      "sha256": null,
-      "rendered_pages_sha256": null,
+      "sha256": "79248f87ac5b30d03808b5fc5a5a1b0fd8492dc2c95cc93070b7f050f25d9492",
+      "rendered_pages_sha256": "f26196e4dd1796438da213ba1a9e80c86071ed4888492d29725ee5c5713cddd7",
       "notes": "1940-Act registered fund. 7% carry after LPs receive 125% of contributions; no fund-level management fee (it sits in the advisory agreement). Exercises not_found and a multiple-of-capital hurdle. HTML has printed page numbers and '* * *' page separators."
     },
     {
@@ -47,8 +47,8 @@
         "may_commit": false,
         "public_demo": true
       },
-      "sha256": null,
-      "rendered_pages_sha256": null,
+      "sha256": "063baf0d8e19c2f6a26d5bb6f578d90b16637e452f442de4089080e8b35060ec",
+      "rendered_pages_sha256": "c725b17c3b0eb3bdbad4612ea4102213ee3fb6243b9b384a6d022f2ec5b3373c",
       "notes": "SBA-regulated SBIC structure from 2002; the parent corporation is the main limited partner."
     },
     {
@@ -64,7 +64,7 @@
         "may_commit": false,
         "public_demo": false
       },
-      "sha256": null,
+      "sha256": "6a56506e7e89910d351abdf7e2a600b0563aee04f34ad7fa03f12ae3bdc4856f",
       "rendered_pages_sha256": null,
       "notes": "Template with bracketed blanks: most economic terms should come back as 'placeholder', not a value."
     },
@@ -81,7 +81,7 @@
         "may_commit": false,
         "public_demo": false
       },
-      "sha256": null,
+      "sha256": "1e3dcc2da5c8a85c3d1e182edf7abb6abe9ba530976800d420ee66f4f61f0f19",
       "rendered_pages_sha256": null,
       "notes": "Same family as the WOF version: shares most text, differs in the waterfall. The URL's 'Parnership' typo is ILPA's own."
     },
@@ -98,7 +98,7 @@
         "may_commit": false,
         "public_demo": false
       },
-      "sha256": null,
+      "sha256": "837d5151b33e409055848bc53323a01e644364e0fd83890d58cb810018c7f7f3",
       "rendered_pages_sha256": null
     },
     {
@@ -114,7 +114,7 @@
         "may_commit": false,
         "public_demo": false
       },
-      "sha256": null,
+      "sha256": "42c3f78e6e5068f1f7c736a4eab3d2190f76c1c250b01e8cc18a4540bf5542a6",
       "rendered_pages_sha256": null
     },
     {
@@ -130,7 +130,7 @@
         "may_commit": false,
         "public_demo": false
       },
-      "sha256": null,
+      "sha256": "f98ed69d9540ff3c1a1ca2db469e6a3c813afede626ee0630ec396b7c4c7467e",
       "rendered_pages_sha256": null,
       "notes": "Guidance document that contains a notice template. A hard negative for the classifier: it talks about capital calls but is not a notice."
     }
